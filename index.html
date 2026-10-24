@@ -245,7 +245,7 @@
       renderLogs();
     });
 
-    // Theme Management
+// Theme Management
     function initTheme() {
       const savedTheme = localStorage.getItem('drink_color_theme') || 'blue';
       const customHex = localStorage.getItem('drink_custom_hex');
@@ -257,9 +257,9 @@
       }
 
       if (customHex) {
-        applyCustomHexTheme(customHex);
+        applyCustomHexTheme(customHex, false);
       } else {
-        applyColorTheme(savedTheme);
+        applyColorTheme(savedTheme, false);
       }
     }
 
@@ -273,7 +273,7 @@
       document.getElementById('theme-modal').classList.toggle('hidden');
     }
 
-    function applyColorTheme(themeName) {
+    function applyColorTheme(themeName, closeModal = true) {
       document.body.className = document.body.className.replace(/theme-\w+/g, '');
       document.body.classList.add(`theme-${themeName}`);
       localStorage.setItem('drink_color_theme', themeName);
@@ -281,10 +281,16 @@
       
       const themeHexMap = { blue: '#3b82f6', emerald: '#10b981', coral: '#f43f5e', purple: '#a855f7', amber: '#f59e0b' };
       document.getElementById('meta-theme-color').setAttribute('content', themeHexMap[themeName] || '#3b82f6');
-      toggleThemeModal();
+      
+      if (closeModal) {
+        const modal = document.getElementById('theme-modal');
+        if (!modal.classList.contains('hidden')) {
+          toggleThemeModal();
+        }
+      }
     }
 
-    function applyCustomHexTheme(hex) {
+    function applyCustomHexTheme(hex, closeModal = true) {
       document.documentElement.style.setProperty('--brand-500', hex);
       document.documentElement.style.setProperty('--brand-600', hex);
       document.documentElement.style.setProperty('--brand-700', hex);
@@ -294,7 +300,13 @@
       
       localStorage.setItem('drink_custom_hex', hex);
       document.getElementById('meta-theme-color').setAttribute('content', hex);
-      if(!document.getElementById('theme-modal').classList.contains('hidden')) toggleThemeModal();
+      
+      if (closeModal) {
+        const modal = document.getElementById('theme-modal');
+        if (!modal.classList.contains('hidden')) {
+          toggleThemeModal();
+        }
+      }
     }
 
     // App Logic & Storage
