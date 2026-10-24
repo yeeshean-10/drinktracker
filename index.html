@@ -1,430 +1,952 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="light">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Daily Drink Tracker</title>
-  <link rel="manifest" href="./manifest.json">
-  <meta name="theme-color" id="meta-theme-color" content="#3b82f6">
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: {
-              50: 'var(--brand-50)',
-              100: 'var(--brand-100)',
-              200: 'var(--brand-200)',
-              500: 'var(--brand-500)',
-              600: 'var(--brand-600)',
-              700: 'var(--brand-700)',
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Drink Tracker</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
             }
-          }
         }
-      }
-    }
-  </script>
-  <style>
-    :root {
-      --brand-50: #eff6ff;
-      --brand-100: #dbeafe;
-      --brand-200: #bfdbfe;
-      --brand-500: #3b82f6;
-      --brand-600: #2563eb;
-      --brand-700: #1d4ed8;
-    }
-    .theme-blue {
-      --brand-50: #eff6ff; --brand-100: #dbeafe; --brand-200: #bfdbfe;
-      --brand-500: #3b82f6; --brand-600: #2563eb; --brand-700: #1d4ed8;
-    }
-    .theme-emerald {
-      --brand-50: #ecfdf5; --brand-100: #d1fae5; --brand-200: #a7f3d0;
-      --brand-500: #10b981; --brand-600: #059669; --brand-700: #047857;
-    }
-    .theme-coral {
-      --brand-50: #fff1f2; --brand-100: #ffe4e6; --brand-200: #fecdd3;
-      --brand-500: #f43f5e; --brand-600: #e11d48; --brand-700: #be123c;
-    }
-    .theme-purple {
-      --brand-50: #faf5ff; --brand-100: #f3e8ff; --brand-200: #e9d5ff;
-      --brand-500: #a855f7; --brand-600: #9333ea; --brand-700: #7e22ce;
-    }
-    .theme-amber {
-      --brand-50: #fffbeb; --brand-100: #fef3c7; --brand-200: #fde68a;
-      --brand-500: #f59e0b; --brand-600: #d97706; --brand-700: #b45309;
-    }
-  </style>
+    </script>
+    <!-- Google Fonts & Lucide Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .dark .glass {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        /* Progress Circle animation */
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.5s ease-in-out;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #334155;
+        }
+    </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen transition-colors duration-200 pb-20">
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen transition-colors duration-200 pb-24 md:pb-12">
 
-  <!-- Header -->
-  <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30">
-    <div class="max-w-xl mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center space-x-2">
-        <span class="text-2xl">🥤</span>
-        <h1 class="text-xl font-bold tracking-tight text-gray-900 dark:text-white">Drink Tracker</h1>
-      </div>
-      <div class="flex items-center space-x-2">
-        <button id="theme-btn" onclick="toggleThemeModal()" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition" title="Change Theme Color">
-          🎨
-        </button>
-        <button id="dark-mode-btn" onclick="toggleDarkMode()" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition" title="Toggle Dark Mode">
-          🌙
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <main class="max-w-xl mx-auto px-4 pt-6 space-y-6">
-
-    <!-- Goal & Hydration Dashboard Card -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 relative overflow-hidden">
-      <div class="flex items-center justify-between mb-4">
-        <div>
-          <h2 class="text-sm font-medium text-gray-500 dark:text-gray-400">Today's Hydration Goal</h2>
-          <div class="flex items-baseline space-x-2">
-            <span id="current-volume" class="text-3xl font-extrabold text-brand-600 dark:text-brand-500">0</span>
-            <span class="text-gray-500 dark:text-gray-400 font-medium">/ <span id="target-goal">2000</span> ml</span>
-            <button onclick="editGoal()" class="text-xs text-gray-400 hover:text-brand-500 ml-1">✏️ Edit</button>
-          </div>
-        </div>
-        <div class="text-right">
-          <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-brand-50 dark:bg-gray-700 text-brand-600 dark:text-brand-500 border border-brand-200 dark:border-gray-600" id="streak-tag">
-            🔥 0 Day Streak
-          </span>
-        </div>
-      </div>
-
-      <!-- Progress Bar -->
-      <div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-4 overflow-hidden mb-2">
-        <div id="progress-bar" class="bg-brand-500 h-full transition-all duration-500 rounded-full" style="width: 0%"></div>
-      </div>
-      <p id="progress-text" class="text-xs text-center text-gray-500 dark:text-gray-400 mt-2">0% reached — Keep sipping!</p>
-    </div>
-
-    <!-- Add Drink Log Card -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-      <h2 class="text-lg font-bold mb-4 text-gray-900 dark:text-white">Log a Drink</h2>
-      <form id="drink-form" onsubmit="handleLogDrink(event)" class="space-y-4">
-        
-        <!-- Category Selection -->
-        <div>
-          <label class="block text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Drink Category</label>
-          <div class="grid grid-cols-3 gap-2" id="category-picker">
-            <button type="button" onclick="selectCategory('Water')" class="cat-btn bg-brand-50 dark:bg-gray-700 border-2 border-brand-500 text-gray-800 dark:text-white p-2.5 rounded-xl text-center font-medium text-sm flex flex-col items-center gap-1 transition">
-              <span class="text-xl">💧</span> Water
-            </button>
-            <button type="button" onclick="selectCategory('Coffee')" class="cat-btn bg-gray-50 dark:bg-gray-700 border-2 border-transparent text-gray-800 dark:text-white p-2.5 rounded-xl text-center font-medium text-sm flex flex-col items-center gap-1 hover:border-gray-300 dark:hover:border-gray-600 transition">
-              <span class="text-xl">☕</span> Coffee
-            </button>
-            <button type="button" onclick="selectCategory('Tea')" class="cat-btn bg-gray-50 dark:bg-gray-700 border-2 border-transparent text-gray-800 dark:text-white p-2.5 rounded-xl text-center font-medium text-sm flex flex-col items-center gap-1 hover:border-gray-300 dark:hover:border-gray-600 transition">
-              <span class="text-xl">🍵</span> Tea
-            </button>
-            <button type="button" onclick="selectCategory('Juice')" class="cat-btn bg-gray-50 dark:bg-gray-700 border-2 border-transparent text-gray-800 dark:text-white p-2.5 rounded-xl text-center font-medium text-sm flex flex-col items-center gap-1 hover:border-gray-300 dark:hover:border-gray-600 transition">
-              <span class="text-xl">🧃</span> Juice
-            </button>
-            <button type="button" onclick="selectCategory('Soda')" class="cat-btn bg-gray-50 dark:bg-gray-700 border-2 border-transparent text-gray-800 dark:text-white p-2.5 rounded-xl text-center font-medium text-sm flex flex-col items-center gap-1 hover:border-gray-300 dark:hover:border-gray-600 transition">
-              <span class="text-xl">🥤</span> Soda
-            </button>
-            <button type="button" onclick="selectCategory('Other')" class="cat-btn bg-gray-50 dark:bg-gray-700 border-2 border-transparent text-gray-800 dark:text-white p-2.5 rounded-xl text-center font-medium text-sm flex flex-col items-center gap-1 hover:border-gray-300 dark:hover:border-gray-600 transition">
-              <span class="text-xl">🧋</span> Other
-            </button>
-          </div>
-        </div>
-
-        <!-- Volume Presets & Input -->
-        <div>
-          <label class="block text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Volume (ml)</label>
-          <div class="flex items-center space-x-2 mb-2">
-            <button type="button" onclick="setVolume(250)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-brand-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200">250 ml</button>
-            <button type="button" onclick="setVolume(350)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-brand-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200">350 ml</button>
-            <button type="button" onclick="setVolume(500)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-brand-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200">500 ml</button>
-          </div>
-          <input type="number" id="volume-input" value="250" min="10" max="3000" required class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500">
-        </div>
-
-        <!-- Sugar Level & Notes -->
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-1">Sugar Level</label>
-            <select id="sugar-input" class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-              <option value="No Sugar (0%)">No Sugar (0%)</option>
-              <option value="Less Sugar (30%)">Less Sugar (30%)</option>
-              <option value="Half Sugar (50%)">Half Sugar (50%)</option>
-              <option value="Normal (100%)">Normal (100%)</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-1">Note (Optional)</label>
-            <input type="text" id="note-input" placeholder="e.g. Iced Latty" class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-          </div>
-        </div>
-
-        <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl shadow-md transition transform active:scale-98">
-          + Add Drink Entry
-        </button>
-      </form>
-    </div>
-
-    <!-- History Logs Section -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-bold text-gray-900 dark:text-white">Today's Logs</h2>
-        <input type="date" id="log-date-picker" onchange="loadDateLogs()" class="text-xs bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-2 py-1 text-gray-700 dark:text-gray-200">
-      </div>
-      <div id="logs-container" class="space-y-3">
-        <!-- Dynamic logs rendered here -->
-      </div>
-    </div>
-
-  </main>
-
-  <!-- Quick Hydrate Floating Action Button -->
-  <button onclick="quickAddWater()" class="fixed bottom-6 right-6 bg-brand-500 hover:bg-brand-600 text-white font-bold px-4 py-3 rounded-full shadow-lg flex items-center space-x-2 transition transform active:scale-95 z-20">
-    <span class="text-xl">💧</span>
-    <span>+250ml Water</span>
-  </button>
-
-  <!-- Color Theme Picker Modal -->
-  <div id="theme-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-5 border border-gray-100 dark:border-gray-700">
-      <div class="flex items-center justify-between">
-        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Choose Color Theme</h3>
-        <button onclick="toggleThemeModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl font-bold">&times;</button>
-      </div>
-
-      <div class="grid grid-cols-1 gap-2.5">
-        <button onclick="applyColorTheme('blue')" class="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-gray-700 transition">
-          <span class="font-medium text-sm flex items-center gap-2"><span class="w-4 h-4 rounded-full bg-blue-500"></span> Ocean Blue</span>
-          <span class="text-xs text-gray-400">Default</span>
-        </button>
-        <button onclick="applyColorTheme('emerald')" class="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-emerald-50 dark:hover:bg-gray-700 transition">
-          <span class="font-medium text-sm flex items-center gap-2"><span class="w-4 h-4 rounded-full bg-emerald-500"></span> Emerald Mint</span>
-          <span class="text-xs text-gray-400">Tea & Fresh</span>
-        </button>
-        <button onclick="applyColorTheme('coral')" class="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-rose-50 dark:hover:bg-gray-700 transition">
-          <span class="font-medium text-sm flex items-center gap-2"><span class="w-4 h-4 rounded-full bg-rose-500"></span> Sunset Coral</span>
-          <span class="text-xs text-gray-400">Energetic</span>
-        </button>
-        <button onclick="applyColorTheme('purple')" class="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-purple-50 dark:hover:bg-gray-700 transition">
-          <span class="font-medium text-sm flex items-center gap-2"><span class="w-4 h-4 rounded-full bg-purple-500"></span> Berry Purple</span>
-          <span class="text-xs text-gray-400">Vibrant</span>
-        </button>
-        <button onclick="applyColorTheme('amber')" class="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-amber-50 dark:hover:bg-gray-700 transition">
-          <span class="font-medium text-sm flex items-center gap-2"><span class="w-4 h-4 rounded-full bg-amber-500"></span> Warm Amber</span>
-          <span class="text-xs text-gray-400">Coffee Vibe</span>
-        </button>
-      </div>
-
-      <!-- Custom Color Input -->
-      <div class="pt-2 border-t border-gray-100 dark:border-gray-700">
-        <label class="block text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Custom Color</label>
-        <div class="flex items-center space-x-3">
-          <input type="color" id="custom-color-picker" value="#3b82f6" onchange="applyCustomHexTheme(this.value)" class="w-10 h-10 rounded-lg cursor-pointer border-0 bg-transparent">
-          <span class="text-xs text-gray-500 dark:text-gray-400">Tap to pick custom color</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    let selectedCategory = 'Water';
-    let dailyGoal = parseInt(localStorage.getItem('drink_goal')) || 2000;
-    let selectedDate = new Date().toISOString().split('T')[0];
-
-    // Category Emoji Map
-    const catEmojis = { Water: '💧', Coffee: '☕', Tea: '🍵', Juice: '🧃', Soda: '🥤', Other: '🧋' };
-
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('log-date-picker').value = selectedDate;
-      document.getElementById('target-goal').textContent = dailyGoal;
-      initTheme();
-      renderLogs();
-    });
-
-// Theme Management
-    function initTheme() {
-      const savedTheme = localStorage.getItem('drink_color_theme') || 'blue';
-      const customHex = localStorage.getItem('drink_custom_hex');
-      const darkMode = localStorage.getItem('drink_dark_mode') === 'true';
-
-      if (darkMode) {
-        document.documentElement.classList.add('dark');
-        document.getElementById('dark-mode-btn').textContent = '☀️';
-      }
-
-      if (customHex) {
-        applyCustomHexTheme(customHex, false);
-      } else {
-        applyColorTheme(savedTheme, false);
-      }
-    }
-
-    function toggleDarkMode() {
-      const isDark = document.documentElement.classList.toggle('dark');
-      localStorage.setItem('drink_dark_mode', isDark);
-      document.getElementById('dark-mode-btn').textContent = isDark ? '☀️' : '🌙';
-    }
-
-    function toggleThemeModal() {
-      document.getElementById('theme-modal').classList.toggle('hidden');
-    }
-
-    function applyColorTheme(themeName, closeModal = true) {
-      document.body.className = document.body.className.replace(/theme-\w+/g, '');
-      document.body.classList.add(`theme-${themeName}`);
-      localStorage.setItem('drink_color_theme', themeName);
-      localStorage.removeItem('drink_custom_hex');
-      
-      const themeHexMap = { blue: '#3b82f6', emerald: '#10b981', coral: '#f43f5e', purple: '#a855f7', amber: '#f59e0b' };
-      document.getElementById('meta-theme-color').setAttribute('content', themeHexMap[themeName] || '#3b82f6');
-      
-      if (closeModal) {
-        const modal = document.getElementById('theme-modal');
-        if (!modal.classList.contains('hidden')) {
-          toggleThemeModal();
-        }
-      }
-    }
-
-    function applyCustomHexTheme(hex, closeModal = true) {
-      document.documentElement.style.setProperty('--brand-500', hex);
-      document.documentElement.style.setProperty('--brand-600', hex);
-      document.documentElement.style.setProperty('--brand-700', hex);
-      document.documentElement.style.setProperty('--brand-50', hex + '15');
-      document.documentElement.style.setProperty('--brand-100', hex + '30');
-      document.documentElement.style.setProperty('--brand-200', hex + '50');
-      
-      localStorage.setItem('drink_custom_hex', hex);
-      document.getElementById('meta-theme-color').setAttribute('content', hex);
-      
-      if (closeModal) {
-        const modal = document.getElementById('theme-modal');
-        if (!modal.classList.contains('hidden')) {
-          toggleThemeModal();
-        }
-      }
-    }
-
-    // App Logic & Storage
-    function selectCategory(cat) {
-      selectedCategory = cat;
-      const buttons = document.querySelectorAll('.cat-btn');
-      buttons.forEach(btn => {
-        const isTarget = btn.textContent.includes(cat);
-        btn.className = isTarget 
-          ? 'cat-btn bg-brand-50 dark:bg-gray-700 border-2 border-brand-500 text-gray-800 dark:text-white p-2.5 rounded-xl text-center font-medium text-sm flex flex-col items-center gap-1 transition'
-          : 'cat-btn bg-gray-50 dark:bg-gray-700 border-2 border-transparent text-gray-800 dark:text-white p-2.5 rounded-xl text-center font-medium text-sm flex flex-col items-center gap-1 hover:border-gray-300 dark:hover:border-gray-600 transition';
-      });
-    }
-
-    function setVolume(ml) {
-      document.getElementById('volume-input').value = ml;
-    }
-
-    function editGoal() {
-      const newGoal = prompt("Enter your new daily hydration goal (ml):", dailyGoal);
-      if (newGoal && !isNaN(newGoal) && newGoal > 0) {
-        dailyGoal = parseInt(newGoal);
-        localStorage.setItem('drink_goal', dailyGoal);
-        document.getElementById('target-goal').textContent = dailyGoal;
-        renderLogs();
-      }
-    }
-
-    function getStorageLogs() {
-      return JSON.parse(localStorage.getItem('drink_logs') || '{}');
-    }
-
-    function saveStorageLogs(logs) {
-      localStorage.setItem('drink_logs', JSON.stringify(logs));
-    }
-
-    function handleLogDrink(e) {
-      e.preventDefault();
-      const volume = parseInt(document.getElementById('volume-input').value);
-      const sugar = document.getElementById('sugar-input').value;
-      const note = document.getElementById('note-input').value;
-      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-      addEntry({ category: selectedCategory, volume, sugar, note, time });
-      document.getElementById('note-input').value = '';
-    }
-
-    function quickAddWater() {
-      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      addEntry({ category: 'Water', volume: 250, sugar: 'No Sugar (0%)', note: 'Quick Hydrate', time });
-    }
-
-    function addEntry(entry) {
-      const logs = getStorageLogs();
-      if (!logs[selectedDate]) logs[selectedDate] = [];
-      logs[selectedDate].unshift(entry);
-      saveStorageLogs(logs);
-      renderLogs();
-    }
-
-    function deleteEntry(index) {
-      const logs = getStorageLogs();
-      if (logs[selectedDate]) {
-        logs[selectedDate].splice(index, 1);
-        saveStorageLogs(logs);
-        renderLogs();
-      }
-    }
-
-    function loadDateLogs() {
-      selectedDate = document.getElementById('log-date-picker').value;
-      renderLogs();
-    }
-
-    function renderLogs() {
-      const logs = getStorageLogs();
-      const dateEntries = logs[selectedDate] || [];
-      const container = document.getElementById('logs-container');
-
-      const totalVol = dateEntries.reduce((sum, item) => sum + item.volume, 0);
-      document.getElementById('current-volume').textContent = totalVol;
-
-      // Update progress
-      const percent = Math.min(Math.round((totalVol / dailyGoal) * 100), 100);
-      document.getElementById('progress-bar').style.width = `${percent}%`;
-      document.getElementById('progress-text').textContent = `${percent}% reached — ${percent >= 100 ? '🎉 Daily goal accomplished!' : 'Keep sipping!'}`;
-
-      // Render items
-      if (dateEntries.length === 0) {
-        container.innerHTML = `<p class="text-center text-sm text-gray-400 py-6">No drinks logged for this date.</p>`;
-        return;
-      }
-
-      container.innerHTML = dateEntries.map((item, idx) => `
-        <div class="flex items-center justify-between p-3.5 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-100 dark:border-gray-700">
-          <div class="flex items-center space-x-3">
-            <span class="text-2xl">${catEmojis[item.category] || '🥤'}</span>
-            <div>
-              <div class="font-semibold text-sm text-gray-900 dark:text-white">${item.category} <span class="text-xs font-normal text-gray-500 dark:text-gray-400">(${item.volume} ml)</span></div>
-              <div class="text-xs text-gray-400 flex items-center space-x-2">
-                <span>🕒 ${item.time}</span>
-                <span>• ${item.sugar}</span>
-                ${item.note ? `<span>• <i>${item.note}</i></span>` : ''}
-              </div>
+    <!-- Top Navigation Header -->
+    <header class="sticky top-0 z-30 glass border-b border-slate-200/80 dark:border-slate-800/80 px-4 py-3 sm:px-8">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-brand-500 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+                    <i data-lucide="droplet" class="w-6 h-6 fill-current"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-brand-600 to-cyan-500 bg-clip-text text-transparent dark:from-brand-400 dark:to-cyan-300">
+                        AquaTrack
+                    </h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Daily Hydration & Drink Log</p>
+                </div>
             </div>
-          </div>
-          <button onclick="deleteEntry(${idx})" class="text-gray-400 hover:text-red-500 p-1.5 transition">🗑️</button>
+
+            <!-- Header Action Controls -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <!-- Streak Badge -->
+                <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 text-xs sm:text-sm font-semibold" title="Hydration Streak">
+                    <i data-lucide="flame" class="w-4 h-4 fill-amber-500 stroke-amber-500"></i>
+                    <span id="streakCount">0</span> <span class="hidden sm:inline">Days</span>
+                </div>
+
+                <!-- Dark Mode Toggle -->
+                <button id="themeToggleBtn" class="p-2 rounded-xl bg-slate-200/60 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300/60 dark:hover:bg-slate-700 transition">
+                    <i data-lucide="moon" class="w-5 h-5 hidden dark:block"></i>
+                    <i data-lucide="sun" class="w-5 h-5 block dark:hidden"></i>
+                </button>
+
+                <!-- Goal Settings Button -->
+                <button id="openGoalModalBtn" class="p-2 rounded-xl bg-slate-200/60 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-300/60 dark:hover:bg-slate-700 transition" title="Adjust Daily Target">
+                    <i data-lucide="target" class="w-5 h-5"></i>
+                </button>
+            </div>
         </div>
-      `).join('');
-    }
-  </script>
-  
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
-      });
-    }
-  </script>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-4xl mx-auto px-4 py-6 sm:px-8 space-y-6">
+
+        <!-- Date Navigation & Quick Date Selector -->
+        <div class="flex items-center justify-between bg-white dark:bg-slate-800/90 rounded-2xl p-3 shadow-sm border border-slate-200/70 dark:border-slate-700/60">
+            <button id="prevDateBtn" class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition">
+                <i data-lucide="chevron-left" class="w-5 h-5"></i>
+            </button>
+
+            <div class="flex items-center gap-2">
+                <i data-lucide="calendar" class="w-4 h-4 text-brand-500"></i>
+                <input type="date" id="datePicker" class="bg-transparent font-semibold text-slate-700 dark:text-slate-200 cursor-pointer focus:outline-none text-sm sm:text-base">
+                <button id="todayBtn" class="text-xs bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 px-2.5 py-1 rounded-lg font-medium border border-brand-200 dark:border-brand-800 hover:bg-brand-100 transition hidden">Today</button>
+            </div>
+
+            <button id="nextDateBtn" class="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition">
+                <i data-lucide="chevron-right" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <!-- Upper Section: Progress & Quick Action -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+            
+            <!-- Circular Hydration Progress Dashboard Card -->
+            <div class="md:col-span-7 bg-white dark:bg-slate-800/90 rounded-3xl p-6 shadow-sm border border-slate-200/70 dark:border-slate-700/60 flex flex-col items-center justify-center relative overflow-hidden">
+                <div class="absolute -top-12 -right-12 w-40 h-40 bg-brand-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+                <!-- Progress Ring -->
+                <div class="relative w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center my-2">
+                    <svg class="w-full h-full" viewBox="0 0 120 120">
+                        <!-- Background Circle -->
+                        <circle class="text-slate-100 dark:text-slate-700/60" stroke-width="10" stroke="currentColor" fill="transparent" r="50" cx="60" cy="60" />
+                        <!-- Dynamic Progress Circle -->
+                        <circle id="progressCircle" class="progress-ring__circle text-brand-500 stroke-current" stroke-width="10" stroke-linecap="round" fill="transparent" r="50" cx="60" cy="60" stroke-dasharray="314.15" stroke-dashoffset="314.15" />
+                    </svg>
+
+                    <!-- Center Stats overlay -->
+                    <div class="absolute flex flex-col items-center text-center">
+                        <span id="intakeDisplay" class="text-3xl sm:text-4xl font-extrabold text-slate-800 dark:text-white tracking-tight">0</span>
+                        <span id="targetDisplay" class="text-xs sm:text-sm text-slate-400 dark:text-slate-400 font-medium mt-0.5">/ 2000 ml</span>
+                        <span id="percentDisplay" class="mt-2 text-xs font-bold px-2.5 py-0.5 rounded-full bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-300 border border-brand-200 dark:border-brand-800">0%</span>
+                    </div>
+                </div>
+
+                <!-- Motivational Banner -->
+                <div class="mt-3 text-center">
+                    <p id="motivationalText" class="text-sm font-medium text-slate-600 dark:text-slate-300">
+                        Start your day with a fresh glass of water! 💧
+                    </p>
+                </div>
+            </div>
+
+            <!-- Quick Stats & Category Breakdown Sidebar -->
+            <div class="md:col-span-5 flex flex-col justify-between gap-4">
+                
+                <!-- Quick Stats Grid -->
+                <div class="grid grid-cols-2 gap-3">
+                    <!-- Pure Water Stats -->
+                    <div class="bg-white dark:bg-slate-800/90 rounded-2xl p-4 border border-slate-200/70 dark:border-slate-700/60 flex flex-col">
+                        <div class="flex items-center gap-2 text-blue-500 mb-1">
+                            <i data-lucide="droplets" class="w-4 h-4"></i>
+                            <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Pure Water</span>
+                        </div>
+                        <span id="waterStat" class="text-xl font-bold text-slate-800 dark:text-slate-100">0 ml</span>
+                    </div>
+
+                    <!-- Caffeine Stat -->
+                    <div class="bg-white dark:bg-slate-800/90 rounded-2xl p-4 border border-slate-200/70 dark:border-slate-700/60 flex flex-col">
+                        <div class="flex items-center gap-2 text-amber-600 dark:text-amber-500 mb-1">
+                            <i data-lucide="coffee" class="w-4 h-4"></i>
+                            <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Est. Caffeine</span>
+                        </div>
+                        <span id="caffeineStat" class="text-xl font-bold text-slate-800 dark:text-slate-100">0 mg</span>
+                    </div>
+
+                    <!-- Sugar Stat -->
+                    <div class="bg-white dark:bg-slate-800/90 rounded-2xl p-4 border border-slate-200/70 dark:border-slate-700/60 flex flex-col">
+                        <div class="flex items-center gap-2 text-pink-500 mb-1">
+                            <i data-lucide="cookie" class="w-4 h-4"></i>
+                            <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Sugar Intake</span>
+                        </div>
+                        <span id="sugarStat" class="text-xl font-bold text-slate-800 dark:text-slate-100">0 g</span>
+                    </div>
+
+                    <!-- Total Drinks Stat -->
+                    <div class="bg-white dark:bg-slate-800/90 rounded-2xl p-4 border border-slate-200/70 dark:border-slate-700/60 flex flex-col">
+                        <div class="flex items-center gap-2 text-indigo-500 mb-1">
+                            <i data-lucide="cup-soda" class="w-4 h-4"></i>
+                            <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Total Servings</span>
+                        </div>
+                        <span id="countStat" class="text-xl font-bold text-slate-800 dark:text-slate-100">0</span>
+                    </div>
+                </div>
+
+                <!-- Category Visual Breakdown -->
+                <div class="bg-white dark:bg-slate-800/90 rounded-2xl p-4 border border-slate-200/70 dark:border-slate-700/60 flex-1 flex flex-col justify-center">
+                    <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Drink Distribution</h3>
+                    <div id="categoryBars" class="space-y-2 text-xs">
+                        <!-- Dynamic Distribution Bars injected here -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Add Drink Trigger / Main Form Toggle -->
+        <div class="bg-white dark:bg-slate-800/90 rounded-3xl p-6 shadow-sm border border-slate-200/70 dark:border-slate-700/60">
+            <div class="flex items-center justify-between mb-4">
+                <h2 id="formTitle" class="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                    <i data-lucide="plus-circle" class="w-5 h-5 text-brand-500"></i> Log a Drink
+                </h2>
+                <button id="cancelEditBtn" class="text-xs text-rose-500 hover:underline hidden">Cancel Editing</button>
+            </div>
+
+            <form id="drinkForm" class="space-y-5">
+                <input type="hidden" id="editLogId" value="">
+
+                <!-- Drink Type Selector Badges -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                        Select Drink Type
+                    </label>
+                    <div id="typeSelectorGrid" class="grid grid-cols-3 sm:grid-cols-5 gap-2.5">
+                        <!-- Drink Type Pills JS render -->
+                    </div>
+                </div>
+
+                <!-- Volume Input & Presets -->
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center">
+                    <div class="sm:col-span-6">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label for="volumeInput" class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                Volume
+                            </label>
+                            <!-- ml/oz Unit Toggle -->
+                            <div class="flex items-center bg-slate-100 dark:bg-slate-700 p-0.5 rounded-lg text-xs">
+                                <button type="button" id="unitMlBtn" class="px-2 py-0.5 rounded-md font-medium bg-white dark:bg-slate-600 shadow-sm text-slate-800 dark:text-slate-100">ml</button>
+                                <button type="button" id="unitOzBtn" class="px-2 py-0.5 rounded-md font-medium text-slate-500 dark:text-slate-400">oz</button>
+                            </div>
+                        </div>
+                        <div class="relative">
+                            <input type="number" id="volumeInput" min="1" max="5000" placeholder="250" required
+                                   class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500 text-lg font-semibold pr-12">
+                            <span id="unitLabel" class="absolute right-4 top-3 text-sm text-slate-400 font-medium">ml</span>
+                        </div>
+                    </div>
+
+                    <!-- Volume Presets -->
+                    <div class="sm:col-span-6">
+                        <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
+                            Quick Volume Presets
+                        </label>
+                        <div class="grid grid-cols-4 gap-1.5">
+                            <button type="button" class="preset-btn py-2 bg-slate-100 dark:bg-slate-700/60 hover:bg-brand-50 dark:hover:bg-brand-900/30 hover:border-brand-300 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-xl border border-transparent transition" data-ml="250">250ml</button>
+                            <button type="button" class="preset-btn py-2 bg-slate-100 dark:bg-slate-700/60 hover:bg-brand-50 dark:hover:bg-brand-900/30 hover:border-brand-300 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-xl border border-transparent transition" data-ml="330">330ml</button>
+                            <button type="button" class="preset-btn py-2 bg-slate-100 dark:bg-slate-700/60 hover:bg-brand-50 dark:hover:bg-brand-900/30 hover:border-brand-300 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-xl border border-transparent transition" data-ml="500">500ml</button>
+                            <button type="button" class="preset-btn py-2 bg-slate-100 dark:bg-slate-700/60 hover:bg-brand-50 dark:hover:bg-brand-900/30 hover:border-brand-300 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-xl border border-transparent transition" data-ml="700">700ml</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Optional Details (Sweetness, Notes, Time) -->
+                <div class="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                    <!-- Sugar Level -->
+                    <div class="sm:col-span-6">
+                        <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                            Sweetness / Sugar Level: <span id="sugarValueLabel" class="text-brand-500 font-bold">0%</span>
+                        </label>
+                        <div class="flex items-center gap-1.5">
+                            <button type="button" class="sugar-btn flex-1 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-brand-500 text-white" data-sugar="0">0%</button>
+                            <button type="button" class="sugar-btn flex-1 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300" data-sugar="25">25%</button>
+                            <button type="button" class="sugar-btn flex-1 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300" data-sugar="50">50%</button>
+                            <button type="button" class="sugar-btn flex-1 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300" data-sugar="75">75%</button>
+                            <button type="button" class="sugar-btn flex-1 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300" data-sugar="100">100%</button>
+                        </div>
+                    </div>
+
+                    <!-- Timestamp -->
+                    <div class="sm:col-span-6">
+                        <label for="timeInput" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                            Time
+                        </label>
+                        <input type="time" id="timeInput" required
+                               class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                </div>
+
+                <!-- Notes / Custom Label -->
+                <div>
+                    <label for="notesInput" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
+                        Custom Note / Specification <span class="text-slate-400 font-normal lowercase">(optional)</span>
+                    </label>
+                    <input type="text" id="notesInput" placeholder="e.g. Oat Milk Latte, Less ice, Green Tea..." 
+                           class="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" id="submitLogBtn" class="w-full py-3.5 bg-gradient-to-r from-brand-500 to-cyan-500 hover:from-brand-600 hover:to-cyan-600 text-white font-semibold rounded-xl shadow-lg shadow-brand-500/25 transition flex items-center justify-center gap-2">
+                    <i data-lucide="plus" class="w-5 h-5"></i> <span id="submitBtnText">Add Drink Entry</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Logs History Section -->
+        <div class="bg-white dark:bg-slate-800/90 rounded-3xl p-6 shadow-sm border border-slate-200/70 dark:border-slate-700/60">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                    <i data-lucide="history" class="w-5 h-5 text-brand-500"></i> Drink History
+                </h2>
+                <span id="logCountBadge" class="text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2.5 py-1 rounded-full font-medium">
+                    0 entries
+                </span>
+            </div>
+
+            <!-- Dynamic Drink Log List -->
+            <div id="logsContainer" class="space-y-3">
+                <!-- Log Items Injected via JS -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Floating 1-Tap Quick Add Water Button -->
+    <div class="fixed bottom-6 right-6 z-20 flex flex-col items-end gap-2">
+        <button id="quickAddWaterBtn" class="group flex items-center gap-2 px-4 py-3.5 bg-brand-500 hover:bg-brand-600 active:scale-95 text-white font-bold rounded-full shadow-xl shadow-brand-500/40 transition-all duration-200">
+            <i data-lucide="droplet" class="w-5 h-5 fill-current"></i>
+            <span class="text-sm">Quick +250ml Water</span>
+        </button>
+    </div>
+
+    <!-- Edit Daily Target Goal Modal -->
+    <div id="goalModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm hidden">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 max-w-xs w-full mx-4 shadow-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                    <i data-lucide="target" class="w-5 h-5 text-brand-500"></i> Daily Goal
+                </h3>
+                <button id="closeGoalModalBtn" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Set your daily hydration goal in milliliters (ml).</p>
+            <input type="number" id="goalInput" min="500" max="10000" step="100" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-slate-800 dark:text-slate-100 font-bold text-lg text-center focus:ring-2 focus:ring-brand-500 focus:outline-none">
+            <div class="flex gap-2">
+                <button type="button" class="quick-goal-btn flex-1 py-1.5 text-xs font-semibold bg-slate-100 dark:bg-slate-700 rounded-lg" data-goal="2000">2000 ml</button>
+                <button type="button" class="quick-goal-btn flex-1 py-1.5 text-xs font-semibold bg-slate-100 dark:bg-slate-700 rounded-lg" data-goal="2500">2500 ml</button>
+                <button type="button" class="quick-goal-btn flex-1 py-1.5 text-xs font-semibold bg-slate-100 dark:bg-slate-700 rounded-lg" data-goal="3000">3000 ml</button>
+            </div>
+            <button id="saveGoalBtn" class="w-full py-2.5 bg-brand-500 hover:bg-brand-600 text-white font-semibold rounded-xl transition">Save Goal</button>
+        </div>
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        // --- DRINK TYPES CONFIGURATION ---
+        const DRINK_TYPES = {
+            water: { label: 'Water', icon: 'droplets', color: 'bg-blue-500', bgLight: 'bg-blue-50 dark:bg-blue-950/30', border: 'border-blue-200 dark:border-blue-800', text: 'text-blue-500', caffeinePer100ml: 0, sugarFactor: 0 },
+            coffee: { label: 'Coffee', icon: 'coffee', color: 'bg-amber-700', bgLight: 'bg-amber-50 dark:bg-amber-950/30', border: 'border-amber-200 dark:border-amber-800', text: 'text-amber-700', caffeinePer100ml: 40, sugarFactor: 0.05 },
+            tea: { label: 'Tea', icon: 'cup-soda', color: 'bg-emerald-600', bgLight: 'bg-emerald-50 dark:bg-emerald-950/30', border: 'border-emerald-200 dark:border-emerald-800', text: 'text-emerald-600', caffeinePer100ml: 15, sugarFactor: 0.02 },
+            boba: { label: 'Boba / Milk Tea', icon: 'milk', color: 'bg-amber-500', bgLight: 'bg-amber-50 dark:bg-amber-900/30', border: 'border-amber-300 dark:border-amber-700', text: 'text-amber-600', caffeinePer100ml: 10, sugarFactor: 0.12 },
+            juice: { label: 'Juice', icon: 'citrus', color: 'bg-orange-500', bgLight: 'bg-orange-50 dark:bg-orange-950/30', border: 'border-orange-200 dark:border-orange-800', text: 'text-orange-500', caffeinePer100ml: 0, sugarFactor: 0.10 },
+            soda: { label: 'Soda', icon: 'sparkles', color: 'bg-red-500', bgLight: 'bg-red-50 dark:bg-red-950/30', border: 'border-red-200 dark:border-red-800', text: 'text-red-500', caffeinePer100ml: 8, sugarFactor: 0.11 },
+            energy: { label: 'Energy Drink', icon: 'zap', color: 'bg-yellow-500', bgLight: 'bg-yellow-50 dark:bg-yellow-950/30', border: 'border-yellow-200 dark:border-yellow-800', text: 'text-yellow-600', caffeinePer100ml: 32, sugarFactor: 0.11 },
+            alcohol: { label: 'Alcohol', icon: 'wine', color: 'bg-purple-600', bgLight: 'bg-purple-50 dark:bg-purple-950/30', border: 'border-purple-200 dark:border-purple-800', text: 'text-purple-600', caffeinePer100ml: 0, sugarFactor: 0.04 },
+            other: { label: 'Other', icon: 'glass-water', color: 'bg-slate-500', bgLight: 'bg-slate-100 dark:bg-slate-800/40', border: 'border-slate-200 dark:border-slate-700', text: 'text-slate-600', caffeinePer100ml: 0, sugarFactor: 0.03 }
+        };
+
+        const MOTIVATIONAL_QUOTES = [
+            { min: 0, max: 0, text: "Start your day with a fresh glass of water! 💧" },
+            { min: 1, max: 25, text: "Good start! Keep sipping throughout the morning 🌊" },
+            { min: 26, max: 50, text: "You're almost halfway to your daily goal! 💪" },
+            { min: 51, max: 75, text: "Great hydration effort! Over halfway there 🎉" },
+            { min: 76, max: 99, text: "So close to your hydration target! Finish strong 🏆" },
+            { min: 100, max: 999, text: "Goal Smashed! You are fully hydrated today! 🥳🌟" }
+        ];
+
+        // --- APP STATE ---
+        let currentUnit = 'ml'; // 'ml' or 'oz'
+        let selectedDrinkType = 'water';
+        let selectedSugarLevel = 0;
+        let selectedDate = getTodayFormatted();
+        let dailyGoal = 2000; // default 2000ml
+        let logs = []; // array of drink logs
+
+        // --- DOM ELEMENTS ---
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        const datePicker = document.getElementById('datePicker');
+        const prevDateBtn = document.getElementById('prevDateBtn');
+        const nextDateBtn = document.getElementById('nextDateBtn');
+        const todayBtn = document.getElementById('todayBtn');
+
+        const typeSelectorGrid = document.getElementById('typeSelectorGrid');
+        const volumeInput = document.getElementById('volumeInput');
+        const unitLabel = document.getElementById('unitLabel');
+        const unitMlBtn = document.getElementById('unitMlBtn');
+        const unitOzBtn = document.getElementById('unitOzBtn');
+        const sugarValueLabel = document.getElementById('sugarValueLabel');
+        const timeInput = document.getElementById('timeInput');
+        const notesInput = document.getElementById('notesInput');
+        const drinkForm = document.getElementById('drinkForm');
+        const editLogId = document.getElementById('editLogId');
+        const cancelEditBtn = document.getElementById('cancelEditBtn');
+        const formTitle = document.getElementById('formTitle');
+        const submitBtnText = document.getElementById('submitBtnText');
+
+        const intakeDisplay = document.getElementById('intakeDisplay');
+        const targetDisplay = document.getElementById('targetDisplay');
+        const percentDisplay = document.getElementById('percentDisplay');
+        const progressCircle = document.getElementById('progressCircle');
+        const motivationalText = document.getElementById('motivationalText');
+
+        const waterStat = document.getElementById('waterStat');
+        const caffeineStat = document.getElementById('caffeineStat');
+        const sugarStat = document.getElementById('sugarStat');
+        const countStat = document.getElementById('countStat');
+        const streakCount = document.getElementById('streakCount');
+        const categoryBars = document.getElementById('categoryBars');
+
+        const logsContainer = document.getElementById('logsContainer');
+        const logCountBadge = document.getElementById('logCountBadge');
+        const quickAddWaterBtn = document.getElementById('quickAddWaterBtn');
+
+        const goalModal = document.getElementById('goalModal');
+        const openGoalModalBtn = document.getElementById('openGoalModalBtn');
+        const closeGoalModalBtn = document.getElementById('closeGoalModalBtn');
+        const goalInput = document.getElementById('goalInput');
+        const saveGoalBtn = document.getElementById('saveGoalBtn');
+
+        // --- INITIALIZATION ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            loadStateFromStorage();
+            datePicker.value = selectedDate;
+            setCurrentTimeInForm();
+            renderDrinkTypeSelectors();
+            updateUI();
+            
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        });
+
+        // --- THEME MANAGEMENT ---
+        function initTheme() {
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.theme = 'light';
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.theme = 'dark';
+            }
+        });
+
+        // --- STORAGE MANAGEMENT ---
+        function loadStateFromStorage() {
+            const savedGoal = localStorage.getItem('aqua_daily_goal');
+            if (savedGoal) dailyGoal = parseInt(savedGoal, 10);
+
+            const savedLogs = localStorage.getItem('aqua_drink_logs');
+            if (savedLogs) {
+                try {
+                    logs = JSON.parse(savedLogs);
+                } catch (e) {
+                    logs = [];
+                }
+            }
+        }
+
+        function saveStateToStorage() {
+            localStorage.setItem('aqua_daily_goal', dailyGoal);
+            localStorage.setItem('aqua_drink_logs', JSON.stringify(logs));
+        }
+
+        // --- DATE UTILITIES ---
+        function getTodayFormatted() {
+            const d = new Date();
+            return d.toISOString().split('T')[0];
+        }
+
+        function setCurrentTimeInForm() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            timeInput.value = `${hours}:${minutes}`;
+        }
+
+        datePicker.addEventListener('change', (e) => {
+            selectedDate = e.target.value;
+            updateUI();
+        });
+
+        prevDateBtn.addEventListener('click', () => {
+            const current = new Date(selectedDate);
+            current.setDate(current.getDate() - 1);
+            selectedDate = current.toISOString().split('T')[0];
+            datePicker.value = selectedDate;
+            updateUI();
+        });
+
+        nextDateBtn.addEventListener('click', () => {
+            const current = new Date(selectedDate);
+            current.setDate(current.getDate() + 1);
+            selectedDate = current.toISOString().split('T')[0];
+            datePicker.value = selectedDate;
+            updateUI();
+        });
+
+        todayBtn.addEventListener('click', () => {
+            selectedDate = getTodayFormatted();
+            datePicker.value = selectedDate;
+            updateUI();
+        });
+
+        // --- RENDER DRINK TYPE SELECTORS ---
+        function renderDrinkTypeSelectors() {
+            typeSelectorGrid.innerHTML = '';
+            Object.keys(DRINK_TYPES).forEach(typeKey => {
+                const config = DRINK_TYPES[typeKey];
+                const isSelected = selectedDrinkType === typeKey;
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `type-btn flex flex-col items-center justify-center p-2.5 rounded-2xl border transition-all duration-150 ${
+                    isSelected 
+                        ? 'border-brand-500 bg-brand-50/80 dark:bg-brand-900/40 ring-2 ring-brand-500/30' 
+                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-slate-50/50 dark:bg-slate-900/30'
+                }`;
+                btn.dataset.type = typeKey;
+
+                btn.innerHTML = `
+                    <div class="w-8 h-8 rounded-xl ${config.color} text-white flex items-center justify-center mb-1.5 shadow-sm">
+                        <i data-lucide="${config.icon}" class="w-4 h-4"></i>
+                    </div>
+                    <span class="text-[11px] font-semibold text-slate-700 dark:text-slate-200 text-center line-clamp-1">${config.label}</span>
+                `;
+
+                btn.addEventListener('click', () => {
+                    selectedDrinkType = typeKey;
+                    renderDrinkTypeSelectors();
+                    if (window.lucide) lucide.createIcons();
+                });
+
+                typeSelectorGrid.appendChild(btn);
+            });
+        }
+
+        // --- UNIT & PRESET HANDLING ---
+        unitMlBtn.addEventListener('click', () => {
+            if (currentUnit === 'oz') {
+                currentUnit = 'ml';
+                unitMlBtn.className = "px-2 py-0.5 rounded-md font-medium bg-white dark:bg-slate-600 shadow-sm text-slate-800 dark:text-slate-100";
+                unitOzBtn.className = "px-2 py-0.5 rounded-md font-medium text-slate-500 dark:text-slate-400";
+                unitLabel.textContent = "ml";
+                if (volumeInput.value) {
+                    volumeInput.value = Math.round(volumeInput.value * 29.5735);
+                }
+            }
+        });
+
+        unitOzBtn.addEventListener('click', () => {
+            if (currentUnit === 'ml') {
+                currentUnit = 'oz';
+                unitOzBtn.className = "px-2 py-0.5 rounded-md font-medium bg-white dark:bg-slate-600 shadow-sm text-slate-800 dark:text-slate-100";
+                unitMlBtn.className = "px-2 py-0.5 rounded-md font-medium text-slate-500 dark:text-slate-400";
+                unitLabel.textContent = "oz";
+                if (volumeInput.value) {
+                    volumeInput.value = (volumeInput.value / 29.5735).toFixed(1);
+                }
+            }
+        });
+
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const ml = parseFloat(btn.dataset.ml);
+                if (currentUnit === 'ml') {
+                    volumeInput.value = ml;
+                } else {
+                    volumeInput.value = (ml / 29.5735).toFixed(1);
+                }
+            });
+        });
+
+        // Sugar Level Buttons
+        document.querySelectorAll('.sugar-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                selectedSugarLevel = parseInt(btn.dataset.sugar, 10);
+                sugarValueLabel.textContent = `${selectedSugarLevel}%`;
+                document.querySelectorAll('.sugar-btn').forEach(b => {
+                    b.className = "sugar-btn flex-1 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300";
+                });
+                btn.className = "sugar-btn flex-1 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-brand-500 text-white";
+            });
+        });
+
+        // --- FORM SUBMISSION ---
+        drinkForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            let volInMl = parseFloat(volumeInput.value);
+            if (currentUnit === 'oz') {
+                volInMl = Math.round(volInMl * 29.5735);
+            }
+
+            if (isNaN(volInMl) || volInMl <= 0) return;
+
+            const editingId = editLogId.value;
+
+            if (editingId) {
+                // Update Existing Log
+                const index = logs.findIndex(l => l.id === editingId);
+                if (index !== -1) {
+                    logs[index].type = selectedDrinkType;
+                    logs[index].volume = volInMl;
+                    logs[index].sugar = selectedSugarLevel;
+                    logs[index].time = timeInput.value;
+                    logs[index].notes = notesInput.value.trim();
+                    logs[index].date = selectedDate;
+                }
+                resetForm();
+            } else {
+                // Create New Log Entry
+                const newLog = {
+                    id: 'log_' + Date.now(),
+                    date: selectedDate,
+                    time: timeInput.value,
+                    type: selectedDrinkType,
+                    volume: volInMl,
+                    sugar: selectedSugarLevel,
+                    notes: notesInput.value.trim()
+                };
+                logs.unshift(newLog);
+            }
+
+            saveStateToStorage();
+            updateUI();
+            
+            // Reset input values except date/time
+            volumeInput.value = '';
+            notesInput.value = '';
+        });
+
+        function resetForm() {
+            editLogId.value = '';
+            formTitle.innerHTML = `<i data-lucide="plus-circle" class="w-5 h-5 text-brand-500"></i> Log a Drink`;
+            submitBtnText.textContent = "Add Drink Entry";
+            cancelEditBtn.classList.add('hidden');
+            volumeInput.value = '';
+            notesInput.value = '';
+            selectedDrinkType = 'water';
+            selectedSugarLevel = 0;
+            sugarValueLabel.textContent = '0%';
+            renderDrinkTypeSelectors();
+            setCurrentTimeInForm();
+            if (window.lucide) lucide.createIcons();
+        }
+
+        cancelEditBtn.addEventListener('click', resetForm);
+
+        // --- QUICK 1-TAP WATER ADD ---
+        quickAddWaterBtn.addEventListener('click', () => {
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
+            const quickLog = {
+                id: 'log_' + Date.now(),
+                date: selectedDate,
+                time: timeStr,
+                type: 'water',
+                volume: 250,
+                sugar: 0,
+                notes: 'Quick Water Hydration'
+            };
+
+            logs.unshift(quickLog);
+            saveStateToStorage();
+            updateUI();
+        });
+
+        // --- GOAL MODAL HANDLERS ---
+        openGoalModalBtn.addEventListener('click', () => {
+            goalInput.value = dailyGoal;
+            goalModal.classList.remove('hidden');
+        });
+
+        closeGoalModalBtn.addEventListener('click', () => {
+            goalModal.classList.add('hidden');
+        });
+
+        document.querySelectorAll('.quick-goal-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                goalInput.value = btn.dataset.goal;
+            });
+        });
+
+        saveGoalBtn.addEventListener('click', () => {
+            const val = parseInt(goalInput.value, 10);
+            if (val && val >= 100) {
+                dailyGoal = val;
+                saveStateToStorage();
+                updateUI();
+                goalModal.classList.add('hidden');
+            }
+        });
+
+        // --- CORE UI UPDATE & STATS CALCULATIONS ---
+        function updateUI() {
+            // Update Date Header
+            const isToday = selectedDate === getTodayFormatted();
+            todayBtn.classList.toggle('hidden', isToday);
+
+            // Filter logs for current selected date
+            const daysLogs = logs.filter(log => log.date === selectedDate);
+
+            // Calculate Metrics
+            let totalVolume = 0;
+            let pureWater = 0;
+            let totalCaffeine = 0;
+            let totalSugar = 0;
+            let categoryTotals = {};
+
+            daysLogs.forEach(log => {
+                totalVolume += log.volume;
+                const config = DRINK_TYPES[log.type] || DRINK_TYPES.other;
+
+                if (log.type === 'water') {
+                    pureWater += log.volume;
+                }
+
+                // Caffeine Calculation (mg)
+                totalCaffeine += (log.volume / 100) * config.caffeinePer100ml;
+
+                // Sugar Calculation (g): base factor + sweetness modifier
+                const baseSugar = (log.volume * config.sugarFactor);
+                const sweetnessMult = log.sugar ? (log.sugar / 50) : 0.5; // modifier relative to sweetness level
+                totalSugar += (baseSugar * sweetnessMult);
+
+                // Category Count/Volume
+                categoryTotals[log.type] = (categoryTotals[log.type] || 0) + log.volume;
+            });
+
+            // Update Circle Dashboard Progress
+            intakeDisplay.textContent = totalVolume.toLocaleString();
+            targetDisplay.textContent = `/ ${dailyGoal.toLocaleString()} ml`;
+
+            const percentage = Math.min(Math.round((totalVolume / dailyGoal) * 100), 100);
+            percentDisplay.textContent = `${percentage}%`;
+
+            // SVG Circumference calculation: 2 * PI * r = 2 * PI * 50 = 314.15
+            const circumference = 314.15;
+            const strokeDashoffset = circumference - (percentage / 100) * circumference;
+            progressCircle.style.strokeDashoffset = strokeDashoffset;
+
+            // Motivational text
+            const quoteObj = MOTIVATIONAL_QUOTES.find(q => percentage >= q.min && percentage <= q.max) || MOTIVATIONAL_QUOTES[0];
+            motivationalText.textContent = quoteObj.text;
+
+            // Stats Cards
+            waterStat.textContent = `${pureWater} ml`;
+            caffeineStat.textContent = `${Math.round(totalCaffeine)} mg`;
+            sugarStat.textContent = `${Math.round(totalSugar)} g`;
+            countStat.textContent = daysLogs.length;
+
+            // Calculate Hydration Streak
+            calculateStreak();
+
+            // Category breakdown bars
+            renderCategoryBreakdown(categoryTotals, totalVolume);
+
+            // Render logs list
+            renderLogsList(daysLogs);
+
+            if (window.lucide) lucide.createIcons();
+        }
+
+        // --- STREAK CALCULATION ---
+        function calculateStreak() {
+            let streak = 0;
+            let checkDate = new Date();
+
+            while (true) {
+                const dateStr = checkDate.toISOString().split('T')[0];
+                const dayVol = logs
+                    .filter(l => l.date === dateStr)
+                    .reduce((sum, l) => sum + l.volume, 0);
+
+                if (dayVol >= dailyGoal) {
+                    streak++;
+                    checkDate.setDate(checkDate.getDate() - 1);
+                } else {
+                    // Check if today is not completed yet, allow yesterday's streak to count
+                    if (dateStr === getTodayFormatted()) {
+                        checkDate.setDate(checkDate.getDate() - 1);
+                        continue;
+                    }
+                    break;
+                }
+            }
+
+            streakCount.textContent = streak;
+        }
+
+        // --- CATEGORY BREAKDOWN BARS ---
+        function renderCategoryBreakdown(categoryTotals, totalVolume) {
+            categoryBars.innerHTML = '';
+
+            if (totalVolume === 0) {
+                categoryBars.innerHTML = `<p class="text-slate-400 italic text-center py-2">No drink data for this day</p>`;
+                return;
+            }
+
+            Object.keys(categoryTotals).forEach(type => {
+                const vol = categoryTotals[type];
+                const percent = Math.round((vol / totalVolume) * 100);
+                const config = DRINK_TYPES[type] || DRINK_TYPES.other;
+
+                const item = document.createElement('div');
+                item.className = 'space-y-1';
+                item.innerHTML = `
+                    <div class="flex justify-between text-[11px] font-medium text-slate-600 dark:text-slate-300">
+                        <span class="flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full ${config.color}"></span>
+                            ${config.label}
+                        </span>
+                        <span>${vol} ml (${percent}%)</span>
+                    </div>
+                    <div class="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                        <div class="h-full ${config.color} transition-all duration-300" style="width: ${percent}%"></div>
+                    </div>
+                `;
+                categoryBars.appendChild(item);
+            });
+        }
+
+        // --- LOGS LIST RENDER & ACTIONS ---
+        function renderLogsList(daysLogs) {
+            logsContainer.innerHTML = '';
+            logCountBadge.textContent = `${daysLogs.length} ${daysLogs.length === 1 ? 'entry' : 'entries'}`;
+
+            if (daysLogs.length === 0) {
+                logsContainer.innerHTML = `
+                    <div class="text-center py-8 text-slate-400 dark:text-slate-500">
+                        <i data-lucide="cup-soda" class="w-10 h-10 mx-auto mb-2 opacity-50"></i>
+                        <p class="text-sm">No drinks logged for this day yet.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            daysLogs.forEach(log => {
+                const config = DRINK_TYPES[log.type] || DRINK_TYPES.other;
+                const card = document.createElement('div');
+                card.className = `flex items-center justify-between p-3.5 rounded-2xl border ${config.bgLight} ${config.border} transition hover:shadow-sm`;
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl ${config.color} text-white flex items-center justify-center shadow-sm shrink-0">
+                            <i data-lucide="${config.icon}" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h4 class="font-semibold text-slate-800 dark:text-slate-100 text-sm">
+                                    ${config.label}
+                                </h4>
+                                ${log.sugar > 0 ? `<span class="text-[10px] px-1.5 py-0.2 font-bold bg-pink-100 text-pink-600 dark:bg-pink-900/40 dark:text-pink-300 rounded-md">${log.sugar}% Sugar</span>` : ''}
+                            </div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-0.5">
+                                <span>${log.time}</span>
+                                ${log.notes ? `<span class="text-slate-400">•</span> <span class="italic text-slate-600 dark:text-slate-300">${escapeHtml(log.notes)}</span>` : ''}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <span class="font-bold text-slate-800 dark:text-slate-100 text-sm sm:text-base">
+                            ${log.volume} <span class="text-xs font-normal text-slate-500">ml</span>
+                        </span>
+                        
+                        <div class="flex items-center gap-1">
+                            <button onclick="editLog('${log.id}')" class="p-1.5 text-slate-400 hover:text-brand-500 dark:hover:text-brand-400 transition" title="Edit entry">
+                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteLog('${log.id}')" class="p-1.5 text-slate-400 hover:text-rose-500 dark:hover:text-rose-400 transition" title="Delete entry">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                logsContainer.appendChild(card);
+            });
+        }
+
+        // Helper to escape HTML string
+        function escapeHtml(str) {
+            return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        // Global functions for inline dynamic buttons
+        window.deleteLog = function(id) {
+            logs = logs.filter(l => l.id !== id);
+            saveStateToStorage();
+            updateUI();
+        };
+
+        window.editLog = function(id) {
+            const log = logs.find(l => l.id === id);
+            if (!log) return;
+
+            editLogId.value = log.id;
+            selectedDrinkType = log.type;
+            volumeInput.value = currentUnit === 'ml' ? log.volume : (log.volume / 29.5735).toFixed(1);
+            selectedSugarLevel = log.sugar || 0;
+            sugarValueLabel.textContent = `${selectedSugarLevel}%`;
+            timeInput.value = log.time;
+            notesInput.value = log.notes || '';
+
+            // Update Sugar buttons active state
+            document.querySelectorAll('.sugar-btn').forEach(btn => {
+                const sVal = parseInt(btn.dataset.sugar, 10);
+                if (sVal === selectedSugarLevel) {
+                    btn.className = "sugar-btn flex-1 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-brand-500 text-white";
+                } else {
+                    btn.className = "sugar-btn flex-1 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300";
+                }
+            });
+
+            renderDrinkTypeSelectors();
+            formTitle.innerHTML = `<i data-lucide="pencil" class="w-5 h-5 text-brand-500"></i> Edit Drink Entry`;
+            submitBtnText.textContent = "Save Changes";
+            cancelEditBtn.classList.remove('hidden');
+
+            window.scrollTo({ top: drinkForm.offsetTop - 100, behavior: 'smooth' });
+            if (window.lucide) lucide.createIcons();
+        };
+    </script>
 </body>
 </html>
