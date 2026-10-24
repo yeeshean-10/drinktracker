@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daily Drink Tracker</title>
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" id="meta-theme-color" content="#3b82f6">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: 'var(--brand-50)',
+              100: 'var(--brand-100)',
+              200: 'var(--brand-200)',
+              500: 'var(--brand-500)',
+              600: 'var(--brand-600)',
+              700: 'var(--brand-700)',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    :root {
+      --brand-50: #eff6ff;
+      --brand-100: #dbeafe;
+      --brand-200: #bfdbfe;
+      --brand-500: #3b82f6;
+      --brand-600: #2563eb;
+      --brand-700: #1d4ed8;
+    }
+    .theme-blue {
+      --brand-50: #eff6ff; --brand-100: #dbeafe; --brand-200: #bfdbfe;
+      --brand-500: #3b82f6; --brand-600: #2563eb; --brand-700: #1d4ed8;
+    }
+    .theme-emerald {
+      --brand-50: #ecfdf5; --brand-100: #d1fae5; --brand-200: #a7f3d0;
+      --brand-500: #10b981; --brand-600: #059669; --brand-700: #047857;
+    }
+    .theme-coral {
+      --brand-50: #fff1f2; --brand-100: #ffe4e6; --brand-200: #fecdd3;
+      --brand-500: #f43f5e; --brand-600: #e11d48; --brand-700: #be123c;
+    }
+    .theme-purple {
+      --brand-50: #faf5ff; --brand-100: #f3e8ff; --brand-200: #e9d5ff;
+      --brand-500: #a855f7; --brand-600: #9333ea; --brand-700: #7e22ce;
+    }
+    .theme-amber {
+      --brand-50: #fffbeb; --brand-100: #fef3c7; --brand-200: #fde68a;
+      --brand-500: #f59e0b; --brand-600: #d97706; --brand-700: #b45309;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen transition-colors duration-200 pb-20">
+
+  <!-- Header -->
+  <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30">
+    <div class="max-w-xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <span class="text-2xl">🥤</span>
+        <h1 class="text-xl font-bold tracking-tight text-gray-900 dark:text-white">Drink Tracker</h1>
+      </div>
+      <div class="flex items-center space-x-2">
+        <button id="theme-btn" onclick="toggleThemeModal()" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition" title="Change Theme Color">
+          🎨
+        </button>
+        <button id="dark-mode-btn" onclick="toggleDarkMode()" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition" title="Toggle Dark Mode">
+          🌙
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-xl mx-auto px-4 pt-6 space-y-6">
+
+    <!-- Goal & Hydration Dashboard Card -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 relative overflow-hidden">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-sm font-medium text-gray-500 dark:text-gray-400">Today's Hydration Goal</h2>
+          <div class="flex items-baseline space-x-2">
+            <span id="current-volume" class="text-3xl font-extrabold text-brand-600 dark:text-brand-500">0</span>
+            <span class="text-gray-500 dark:text-gray-400 font-medium">/ <span id="target-goal">2000</span> ml</span>
+            <button onclick="editGoal()" class="text-xs text-gray-400 hover:text-brand-500 ml-1">✏️ Edit</button>
+          </div>
+        </div>
+        <div class="text-right">
+          <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-brand-50 dark:bg-gray-700 text-brand-600 dark:text-brand-500 border border-brand-200 dark:border-gray-600" id="streak-tag">
+            🔥 0 Day Streak
+          </span>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-4 overflow-hidden mb-2">
+        <div id="progress-bar" class="bg-brand-500 h-full transition-all duration-500 rounded-full" style="width: 0%"></div>
+      </div>
+      <p id="progress-text" class="text-xs text-center text-gray-500 dark:text-gray-400 mt-2">0% reached — Keep sipping!</p>
+    </div>
+
+    <!-- Add Drink Log Card -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+      <h2 class="text-lg font-bold mb-4 text-gray-900 dark:text-white">Log a Drink</h2>
+      <form id="drink-form" onsubmit="handleLogDrink(event)" class="space-y-4">
+        
+        <!-- Category Selection -->
+        <div>
+          <label class="block text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Drink Category</label>
+          <div class="grid grid-cols-3 gap-2" id="category-picker">
+            <button type="button" onclick="selectCategory('Water')" class="cat-btn bg-brand-50 dark:bg-gray-700 border-2 border-brand-500 text-gray-800 dark:text-white p-2.5 rounded-xl text-center font-medium text-sm flex flex-col items-center gap-1 transition">
+              <span class="text-xl">💧</span> Water
+            </button>
+            <button type="button" onclick="selectCategory('Coffee')" class="cat-btn bg-gray-50 dark:bg-gray-700 border-2 border-transparent text-gray-800 dark:text-white p-2.5 rounded-xl text-center font-medium text-sm flex flex-col items-center gap-1 hover:border-gray-300 dark:hover:border-gray-600 transition">
+              <span class="text-xl">☕</span> Coffee
+            </button>
+            <button type="button" onclick="selectCategory('Tea')" class="cat-btn bg-gray-50 dark:bg-gray-700 border-2 border-transparent text-gray-800 dark:text-white p-2.5 rounded-xl text-center font-medium text-sm flex flex-col items-center gap-1 hover:border-gray-300 dark:hover:border-gray-600 transition">
+              <span class="text-xl">🍵</span> Tea
+            </button>
+            <button type="button" onclick="selectCategory('Juice')" class="cat-btn bg-gray-50 dark:bg-gray-700 border-2 border-transparent text-gray-800 dark:text-white p-2.5 rounded-xl text-center font-medium text-sm flex flex-col items-center gap-1 hover:border-gray-300 dark:hover:border-gray-600 transition">
+              <span class="text-xl">🧃</span> Juice
+            </button>
+            <button type="button" onclick="selectCategory('Soda')" class="cat-btn bg-gray-50 dark:bg-gray-700 border-2 border-transparent text-gray-800 dark:text-white p-2.5 rounded-xl text-center font-medium text-sm flex flex-col items-center gap-1 hover:border-gray-300 dark:hover:border-gray-600 transition">
+              <span class="text-xl">🥤</span> Soda
+            </button>
+            <button type="button" onclick="selectCategory('Other')" class="cat-btn bg-gray-50 dark:bg-gray-700 border-2 border-transparent text-gray-800 dark:text-white p-2.5 rounded-xl text-center font-medium text-sm flex flex-col items-center gap-1 hover:border-gray-300 dark:hover:border-gray-600 transition">
+              <span class="text-xl">🧋</span> Other
+            </button>
+          </div>
+        </div>
+
+        <!-- Volume Presets & Input -->
+        <div>
+          <label class="block text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Volume (ml)</label>
+          <div class="flex items-center space-x-2 mb-2">
+            <button type="button" onclick="setVolume(250)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-brand-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200">250 ml</button>
+            <button type="button" onclick="setVolume(350)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-brand-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200">350 ml</button>
+            <button type="button" onclick="setVolume(500)" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-brand-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200">500 ml</button>
+          </div>
+          <input type="number" id="volume-input" value="250" min="10" max="3000" required class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500">
+        </div>
+
+        <!-- Sugar Level & Notes -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-1">Sugar Level</label>
+            <select id="sugar-input" class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <option value="No Sugar (0%)">No Sugar (0%)</option>
+              <option value="Less Sugar (30%)">Less Sugar (30%)</option>
+              <option value="Half Sugar (50%)">Half Sugar (50%)</option>
+              <option value="Normal (100%)">Normal (100%)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-1">Note (Optional)</label>
+            <input type="text" id="note-input" placeholder="e.g. Iced Latty" class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+          </div>
+        </div>
+
+        <button type="submit" class="w-full bg-brand-500 hover:bg-brand-600 text-white font-bold py-3 rounded-xl shadow-md transition transform active:scale-98">
+          + Add Drink Entry
+        </button>
+      </form>
+    </div>
+
+    <!-- History Logs Section -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-gray-900 dark:text-white">Today's Logs</h2>
+        <input type="date" id="log-date-picker" onchange="loadDateLogs()" class="text-xs bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-2 py-1 text-gray-700 dark:text-gray-200">
+      </div>
+      <div id="logs-container" class="space-y-3">
+        <!-- Dynamic logs rendered here -->
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Quick Hydrate Floating Action Button -->
+  <button onclick="quickAddWater()" class="fixed bottom-6 right-6 bg-brand-500 hover:bg-brand-600 text-white font-bold px-4 py-3 rounded-full shadow-lg flex items-center space-x-2 transition transform active:scale-95 z-20">
+    <span class="text-xl">💧</span>
+    <span>+250ml Water</span>
+  </button>
+
+  <!-- Color Theme Picker Modal -->
+  <div id="theme-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-5 border border-gray-100 dark:border-gray-700">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Choose Color Theme</h3>
+        <button onclick="toggleThemeModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xl font-bold">&times;</button>
+      </div>
+
+      <div class="grid grid-cols-1 gap-2.5">
+        <button onclick="applyColorTheme('blue')" class="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-gray-700 transition">
+          <span class="font-medium text-sm flex items-center gap-2"><span class="w-4 h-4 rounded-full bg-blue-500"></span> Ocean Blue</span>
+          <span class="text-xs text-gray-400">Default</span>
+        </button>
+        <button onclick="applyColorTheme('emerald')" class="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-emerald-50 dark:hover:bg-gray-700 transition">
+          <span class="font-medium text-sm flex items-center gap-2"><span class="w-4 h-4 rounded-full bg-emerald-500"></span> Emerald Mint</span>
+          <span class="text-xs text-gray-400">Tea & Fresh</span>
+        </button>
+        <button onclick="applyColorTheme('coral')" class="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-rose-50 dark:hover:bg-gray-700 transition">
+          <span class="font-medium text-sm flex items-center gap-2"><span class="w-4 h-4 rounded-full bg-rose-500"></span> Sunset Coral</span>
+          <span class="text-xs text-gray-400">Energetic</span>
+        </button>
+        <button onclick="applyColorTheme('purple')" class="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-purple-50 dark:hover:bg-gray-700 transition">
+          <span class="font-medium text-sm flex items-center gap-2"><span class="w-4 h-4 rounded-full bg-purple-500"></span> Berry Purple</span>
+          <span class="text-xs text-gray-400">Vibrant</span>
+        </button>
+        <button onclick="applyColorTheme('amber')" class="flex items-center justify-between px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-amber-50 dark:hover:bg-gray-700 transition">
+          <span class="font-medium text-sm flex items-center gap-2"><span class="w-4 h-4 rounded-full bg-amber-500"></span> Warm Amber</span>
+          <span class="text-xs text-gray-400">Coffee Vibe</span>
+        </button>
+      </div>
+
+      <!-- Custom Color Input -->
+      <div class="pt-2 border-t border-gray-100 dark:border-gray-700">
+        <label class="block text-xs font-semibold uppercase text-gray-500 dark:text-gray-400 mb-2">Custom Color</label>
+        <div class="flex items-center space-x-3">
+          <input type="color" id="custom-color-picker" value="#3b82f6" onchange="applyCustomHexTheme(this.value)" class="w-10 h-10 rounded-lg cursor-pointer border-0 bg-transparent">
+          <span class="text-xs text-gray-500 dark:text-gray-400">Tap to pick custom color</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let selectedCategory = 'Water';
+    let dailyGoal = parseInt(localStorage.getItem('drink_goal')) || 2000;
+    let selectedDate = new Date().toISOString().split('T')[0];
+
+    // Category Emoji Map
+    const catEmojis = { Water: '💧', Coffee: '☕', Tea: '🍵', Juice: '🧃', Soda: '🥤', Other: '🧋' };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('log-date-picker').value = selectedDate;
+      document.getElementById('target-goal').textContent = dailyGoal;
+      initTheme();
+      renderLogs();
+    });
+
+    // Theme Management
+    function initTheme() {
+      const savedTheme = localStorage.getItem('drink_color_theme') || 'blue';
+      const customHex = localStorage.getItem('drink_custom_hex');
+      const darkMode = localStorage.getItem('drink_dark_mode') === 'true';
+
+      if (darkMode) {
+        document.documentElement.classList.add('dark');
+        document.getElementById('dark-mode-btn').textContent = '☀️';
+      }
+
+      if (customHex) {
+        applyCustomHexTheme(customHex);
+      } else {
+        applyColorTheme(savedTheme);
+      }
+    }
+
+    function toggleDarkMode() {
+      const isDark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('drink_dark_mode', isDark);
+      document.getElementById('dark-mode-btn').textContent = isDark ? '☀️' : '🌙';
+    }
+
+    function toggleThemeModal() {
+      document.getElementById('theme-modal').classList.toggle('hidden');
+    }
+
+    function applyColorTheme(themeName) {
+      document.body.className = document.body.className.replace(/theme-\w+/g, '');
+      document.body.classList.add(`theme-${themeName}`);
+      localStorage.setItem('drink_color_theme', themeName);
+      localStorage.removeItem('drink_custom_hex');
+      
+      const themeHexMap = { blue: '#3b82f6', emerald: '#10b981', coral: '#f43f5e', purple: '#a855f7', amber: '#f59e0b' };
+      document.getElementById('meta-theme-color').setAttribute('content', themeHexMap[themeName] || '#3b82f6');
+      toggleThemeModal();
+    }
+
+    function applyCustomHexTheme(hex) {
+      document.documentElement.style.setProperty('--brand-500', hex);
+      document.documentElement.style.setProperty('--brand-600', hex);
+      document.documentElement.style.setProperty('--brand-700', hex);
+      document.documentElement.style.setProperty('--brand-50', hex + '15');
+      document.documentElement.style.setProperty('--brand-100', hex + '30');
+      document.documentElement.style.setProperty('--brand-200', hex + '50');
+      
+      localStorage.setItem('drink_custom_hex', hex);
+      document.getElementById('meta-theme-color').setAttribute('content', hex);
+      if(!document.getElementById('theme-modal').classList.contains('hidden')) toggleThemeModal();
+    }
+
+    // App Logic & Storage
+    function selectCategory(cat) {
+      selectedCategory = cat;
+      const buttons = document.querySelectorAll('.cat-btn');
+      buttons.forEach(btn => {
+        const isTarget = btn.textContent.includes(cat);
+        btn.className = isTarget 
+          ? 'cat-btn bg-brand-50 dark:bg-gray-700 border-2 border-brand-500 text-gray-800 dark:text-white p-2.5 rounded-xl text-center font-medium text-sm flex flex-col items-center gap-1 transition'
+          : 'cat-btn bg-gray-50 dark:bg-gray-700 border-2 border-transparent text-gray-800 dark:text-white p-2.5 rounded-xl text-center font-medium text-sm flex flex-col items-center gap-1 hover:border-gray-300 dark:hover:border-gray-600 transition';
+      });
+    }
+
+    function setVolume(ml) {
+      document.getElementById('volume-input').value = ml;
+    }
+
+    function editGoal() {
+      const newGoal = prompt("Enter your new daily hydration goal (ml):", dailyGoal);
+      if (newGoal && !isNaN(newGoal) && newGoal > 0) {
+        dailyGoal = parseInt(newGoal);
+        localStorage.setItem('drink_goal', dailyGoal);
+        document.getElementById('target-goal').textContent = dailyGoal;
+        renderLogs();
+      }
+    }
+
+    function getStorageLogs() {
+      return JSON.parse(localStorage.getItem('drink_logs') || '{}');
+    }
+
+    function saveStorageLogs(logs) {
+      localStorage.setItem('drink_logs', JSON.stringify(logs));
+    }
+
+    function handleLogDrink(e) {
+      e.preventDefault();
+      const volume = parseInt(document.getElementById('volume-input').value);
+      const sugar = document.getElementById('sugar-input').value;
+      const note = document.getElementById('note-input').value;
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      addEntry({ category: selectedCategory, volume, sugar, note, time });
+      document.getElementById('note-input').value = '';
+    }
+
+    function quickAddWater() {
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      addEntry({ category: 'Water', volume: 250, sugar: 'No Sugar (0%)', note: 'Quick Hydrate', time });
+    }
+
+    function addEntry(entry) {
+      const logs = getStorageLogs();
+      if (!logs[selectedDate]) logs[selectedDate] = [];
+      logs[selectedDate].unshift(entry);
+      saveStorageLogs(logs);
+      renderLogs();
+    }
+
+    function deleteEntry(index) {
+      const logs = getStorageLogs();
+      if (logs[selectedDate]) {
+        logs[selectedDate].splice(index, 1);
+        saveStorageLogs(logs);
+        renderLogs();
+      }
+    }
+
+    function loadDateLogs() {
+      selectedDate = document.getElementById('log-date-picker').value;
+      renderLogs();
+    }
+
+    function renderLogs() {
+      const logs = getStorageLogs();
+      const dateEntries = logs[selectedDate] || [];
+      const container = document.getElementById('logs-container');
+
+      const totalVol = dateEntries.reduce((sum, item) => sum + item.volume, 0);
+      document.getElementById('current-volume').textContent = totalVol;
+
+      // Update progress
+      const percent = Math.min(Math.round((totalVol / dailyGoal) * 100), 100);
+      document.getElementById('progress-bar').style.width = `${percent}%`;
+      document.getElementById('progress-text').textContent = `${percent}% reached — ${percent >= 100 ? '🎉 Daily goal accomplished!' : 'Keep sipping!'}`;
+
+      // Render items
+      if (dateEntries.length === 0) {
+        container.innerHTML = `<p class="text-center text-sm text-gray-400 py-6">No drinks logged for this date.</p>`;
+        return;
+      }
+
+      container.innerHTML = dateEntries.map((item, idx) => `
+        <div class="flex items-center justify-between p-3.5 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-100 dark:border-gray-700">
+          <div class="flex items-center space-x-3">
+            <span class="text-2xl">${catEmojis[item.category] || '🥤'}</span>
+            <div>
+              <div class="font-semibold text-sm text-gray-900 dark:text-white">${item.category} <span class="text-xs font-normal text-gray-500 dark:text-gray-400">(${item.volume} ml)</span></div>
+              <div class="text-xs text-gray-400 flex items-center space-x-2">
+                <span>🕒 ${item.time}</span>
+                <span>• ${item.sugar}</span>
+                ${item.note ? `<span>• <i>${item.note}</i></span>` : ''}
+              </div>
+            </div>
+          </div>
+          <button onclick="deleteEntry(${idx})" class="text-gray-400 hover:text-red-500 p-1.5 transition">🗑️</button>
+        </div>
+      `).join('');
+    }
+  </script>
+  
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
+      });
+    }
+  </script>
+</body>
+</html>
